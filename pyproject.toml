@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "noter-gpt"
+version = "0.1.0"
+description = ""
+authors = ["Yale Thomas <lordchair@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+transformers = "^4.37.0"
+torch = "^2.1.2"
+annoy = "^1.17.3"
+argparse = "^1.4.0"
+flask = "^3.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
