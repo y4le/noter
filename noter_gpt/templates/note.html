@@ -8,26 +8,28 @@
                 .then(response => response.text())
                 .then(data => {
                     document.getElementById('similarContent').innerText = data;
+                    document.getElementById('similarContent').style = "flex: 1; height: 100%; border:1px solid #ccc; padding: 5px;";
                 });
         }
     </script>
 </head>
 <body>
-    <h1>Edit Note: {{ filename }}</h1>
+    <h1>
+      Edit Note: {{ filename }}
+      <a href="{{ url_for('index') }}" style="float: right;">Back</a>
+    </h1>
     <form method="POST">
         New Filename: <input type="text" name="new_filename" value="{{ filename }}"><br>
         <div id="textContent" style="display: flex; height: 70vh;">
           <textarea name="content" style="flex: 1; height: 100%">{{ content }}</textarea>
 
-          <div id="similarContent" style="flex: 1; height: 100%; overflow:auto; border:1px solid #ccc;">
+          <div id="similarContent" style="flex: 0; height: 100%;">
               <!-- Similar note content will be displayed here -->
           </div><br>
         </div>
 
         <input type="submit" name="save" value="Save">
-        <input type="submit" name="find_similar" value="Find Similar">
     </form>
-    <a href="{{ url_for('index') }}">Back to Notes List</a>
 
     {% if similar_notes %}
         <h2>Similar Notes:</h2>

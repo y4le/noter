@@ -37,11 +37,7 @@ def note(filename):
 
         # Rebuild or update the index after updating the note
         embedder.build_or_update_index(NOTES_DIRECTORY)
-
-        if 'find_similar' in request.form:
-            similar_notes = embedder.find_similar(content, n=5)
-        else:
-            similar_notes = []
+        similar_notes = embedder.find_similar(content, n=5)
 
         return render_template('note.html', content=content, filename=new_filename, similar_notes=similar_notes)
 
@@ -52,7 +48,12 @@ def note(filename):
                 content = f.read()
         else:
             content = ''
-        return render_template('note.html', content=content, filename=filename, similar_notes=[])
+
+        # Rebuild or update the index after updating the note
+        embedder.build_or_update_index(NOTES_DIRECTORY)
+        similar_notes = embedder.find_similar(content, n=5)
+
+        return render_template('note.html', content=content, filename=filename, similar_notes=similar_notes)
 
 @app.route('/note-content/<filename>')
 def note_content(filename):
