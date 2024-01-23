@@ -3,7 +3,7 @@ from document_embedder import DocumentEmbedder
 
 def index_documents(directory, index_file):
     embedder = DocumentEmbedder(index_file=index_file)
-    embedder.build_index(directory)
+    embedder.build_or_update_index(directory)
 
 def search_documents(query_file, n, index_file):
     embedder = DocumentEmbedder(index_file=index_file)

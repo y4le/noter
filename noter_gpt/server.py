@@ -11,7 +11,7 @@ os.makedirs(NOTES_DIRECTORY, exist_ok=True)
 
 # Initialize the DocumentEmbedder and build the index
 embedder = DocumentEmbedder(index_file=INDEX_FILE)
-embedder.build_index(NOTES_DIRECTORY)
+embedder.build_or_update_index(NOTES_DIRECTORY)
 
 @app.route('/')
 def index():
@@ -28,7 +28,7 @@ def note(filename):
             f.write(content)
 
         # Rebuild the index after updating the note
-        embedder.build_index(NOTES_DIRECTORY)
+        embedder.build_or_update_index(NOTES_DIRECTORY)
 
         # If 'Find Similar' button is clicked
         if 'find_similar' in request.form:
