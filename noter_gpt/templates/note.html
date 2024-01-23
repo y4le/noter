@@ -2,12 +2,28 @@
 <html>
 <head>
     <title>Edit Note</title>
+    <script>
+        function viewSideBySide(similarNote) {
+            fetch('/note-content/' + similarNote)
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('similarContent').innerText = data;
+                });
+        }
+    </script>
 </head>
 <body>
-    <h1>Edit Note</h1>
+    <h1>Edit Note: {{ filename }}</h1>
     <form method="POST">
         New Filename: <input type="text" name="new_filename" value="{{ filename }}"><br>
-        <textarea name="content" rows="20" cols="80">{{ content }}</textarea><br>
+        <div id="textContent" style="display: flex; height: 70vh;">
+          <textarea name="content" style="flex: 1; height: 100%">{{ content }}</textarea>
+
+          <div id="similarContent" style="flex: 1; height: 100%; overflow:auto; border:1px solid #ccc;">
+              <!-- Similar note content will be displayed here -->
+          </div><br>
+        </div>
+
         <input type="submit" name="save" value="Save">
         <input type="submit" name="find_similar" value="Find Similar">
     </form>
@@ -17,7 +33,9 @@
         <h2>Similar Notes:</h2>
         <ul>
             {% for note, similarity in similar_notes %}
-                <li><a href="{{ url_for('note', filename=note) }}">{{ note }}</a> - Similarity: {{ similarity }}</li>
+                <li><a href="{{ url_for('note', filename=note) }}">{{ note }}</a> - Similarity: {{ similarity }}
+                    <button onclick="viewSideBySide('{{ note }}')">View Side by Side</button>
+                </li>
             {% endfor %}
         </ul>
     {% endif %}

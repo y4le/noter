@@ -54,5 +54,14 @@ def note(filename):
             content = ''
         return render_template('note.html', content=content, filename=filename, similar_notes=[])
 
+@app.route('/note-content/<filename>')
+def note_content(filename):
+    filepath = os.path.join(NOTES_DIRECTORY, filename)
+    if os.path.exists(filepath):
+        with open(filepath, 'r') as f:
+            content = f.read()
+        return content
+    return "Note not found", 404
+
 if __name__ == '__main__':
     app.run(debug=True)
