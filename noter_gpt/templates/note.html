@@ -4,8 +4,9 @@
     <title>Edit Note</title>
 </head>
 <body>
-    <h1>Edit Note: {{ filename }}</h1>
+    <h1>Edit Note</h1>
     <form method="POST">
+        New Filename: <input type="text" name="new_filename" value="{{ filename }}"><br>
         <textarea name="content" rows="20" cols="80">{{ content }}</textarea><br>
         <input type="submit" name="save" value="Save">
         <input type="submit" name="find_similar" value="Find Similar">

@@ -20,29 +20,39 @@ def index():
 
 @app.route('/note/<filename>', methods=['GET', 'POST'])
 def note(filename):
-    filepath = os.path.join(NOTES_DIRECTORY, filename)
-    similar_notes = []
     if request.method == 'POST':
         content = request.form['content']
-        with open(filepath, 'w') as f:
+        new_filename = request.form.get('new_filename', filename)
+        new_filepath = os.path.join(NOTES_DIRECTORY, new_filename)
+
+        # Save or update the content
+        with open(new_filepath, 'w') as f:
             f.write(content)
 
-        # Rebuild the index after updating the note
+        # If the filename has been changed, handle the renaming
+        if new_filename != filename:
+            original_filepath = os.path.join(NOTES_DIRECTORY, filename)
+            if os.path.exists(original_filepath):
+                os.remove(original_filepath)
+
+        # Rebuild or update the index after updating the note
         embedder.build_or_update_index(NOTES_DIRECTORY)
 
-        # If 'Find Similar' button is clicked
         if 'find_similar' in request.form:
             similar_notes = embedder.find_similar(content, n=5)
+        else:
+            similar_notes = []
 
-        return render_template('note.html', content=content, filename=filename, similar_notes=similar_notes)
+        return render_template('note.html', content=content, filename=new_filename, similar_notes=similar_notes)
 
     else:
+        filepath = os.path.join(NOTES_DIRECTORY, filename)
         if os.path.exists(filepath):
             with open(filepath, 'r') as f:
                 content = f.read()
         else:
             content = ''
-        return render_template('note.html', content=content, filename=filename, similar_notes=similar_notes)
+        return render_template('note.html', content=content, filename=filename, similar_notes=[])
 
 if __name__ == '__main__':
     app.run(debug=True)
