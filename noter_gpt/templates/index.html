@@ -2,14 +2,32 @@
 <html>
 <head>
     <title>Notes</title>
+    <script>
+        function filterNotes() {
+            var regexPattern = document.getElementById('regexPattern').value;
+            var notes = document.getElementsByClassName('note');
+
+            for (var i = 0; i < notes.length; i++) {
+                if (notes[i].innerText.match(new RegExp(regexPattern, 'i'))) {
+                    notes[i].style.display = '';
+                } else {
+                    notes[i].style.display = 'none';
+                }
+            }
+        }
+    </script>
 </head>
 <body>
     <h1>Notes</h1>
+
+    Regex Filter: <input type="text" id="regexPattern" onkeyup="filterNotes()"><br><br>
+
     <ul>
         {% for note in notes %}
-            <li><a href="{{ url_for('note', filename=note) }}">{{ note }}</a></li>
+            <li class="note"><a href="{{ url_for('note', filename=note) }}">{{ note }}</a></li>
         {% endfor %}
     </ul>
+
     <form action="{{ url_for('note', filename='new_note.txt') }}">
         <input type="submit" value="Create New Note">
     </form>

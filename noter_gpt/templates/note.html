@@ -8,7 +8,7 @@
                 .then(response => response.text())
                 .then(data => {
                     document.getElementById('similarContent').innerText = data;
-                    document.getElementById('similarContent').style = "flex: 1; height: 100%; border:1px solid #ccc; padding: 5px;";
+                    document.getElementById('similarContent').style = "flex: 1; height: 100%; border:1px solid #ccc; padding: 5px; overflow: auto;";
                 });
         }
     </script>
@@ -19,8 +19,7 @@
       <a href="{{ url_for('index') }}" style="float: right;">Back</a>
     </h1>
     <form method="POST">
-        New Filename: <input type="text" name="new_filename" value="{{ filename }}"><br>
-        <div id="textContent" style="display: flex; height: 70vh;">
+        <div id="textContent" style="display: flex; height: 70vh; margin-bottom: 15px;">
           <textarea name="content" style="flex: 1; height: 100%">{{ content }}</textarea>
 
           <div id="similarContent" style="flex: 0; height: 100%;">
@@ -28,15 +27,20 @@
           </div><br>
         </div>
 
-        <input type="submit" name="save" value="Save">
+        <div>
+          <input type="submit" name="save" value="Save">
+          New Filename: <input type="text" name="new_filename" value="{{ filename }}">
+          <input type="submit" name="delete" value="Delete" onclick="return confirm('Are you sure you want to delete this note?');">
+        </div>
     </form>
 
     {% if similar_notes %}
         <h2>Similar Notes:</h2>
         <ul>
             {% for note, similarity in similar_notes %}
-                <li><a href="{{ url_for('note', filename=note) }}">{{ note }}</a> - Similarity: {{ similarity }}
-                    <button onclick="viewSideBySide('{{ note }}')">View Side by Side</button>
+                <li> ({{ similarity }})
+                  <button onclick="viewSideBySide('{{ note }}')"><-></button>
+                  <a href="{{ url_for('note', filename=note) }}">{{ note }}</a>
                 </li>
             {% endfor %}
         </ul>

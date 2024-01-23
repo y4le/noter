@@ -66,10 +66,13 @@ class DocumentEmbedder:
             self.documents = json.load(f)
 
     def find_similar(self, query_text, n=5):
+        if not query_text:
+            return []
+
         if self.need_rebuild:
             self.rebuild_index()
 
         query_embedding = self.embed_document(query_text)
-        indices, distances = self.index.get_nns_by_vector(query_embedding, n, include_distances=True)
+        indices, distances = self.index.get_nns_by_vector(query_embedding, n+1, include_distances=True)
         similar_files = [(os.path.basename(list(self.documents)[i]), 1/(1 + d)) for i, d in zip(indices, distances)]
-        return similar_files
+        return similar_files[1:] # exclude self

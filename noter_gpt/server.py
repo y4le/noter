@@ -21,6 +21,13 @@ def index():
 @app.route('/note/<filename>', methods=['GET', 'POST'])
 def note(filename):
     if request.method == 'POST':
+        if 'delete' in request.form:
+            original_filepath = os.path.join(NOTES_DIRECTORY, filename)
+            if os.path.exists(original_filepath):
+                os.remove(original_filepath)
+                embedder.build_or_update_index(NOTES_DIRECTORY)  # Update the index after deletion
+            return redirect(url_for('index'))
+
         content = request.form['content']
         new_filename = request.form.get('new_filename', filename)
         new_filepath = os.path.join(NOTES_DIRECTORY, new_filename)
@@ -35,9 +42,7 @@ def note(filename):
             if os.path.exists(original_filepath):
                 os.remove(original_filepath)
 
-        # Rebuild or update the index after updating the note
-        embedder.build_or_update_index(NOTES_DIRECTORY)
-        similar_notes = embedder.find_similar(content, n=5)
+        similar_notes = format_similar(content)
 
         return render_template('note.html', content=content, filename=new_filename, similar_notes=similar_notes)
 
@@ -49,9 +54,7 @@ def note(filename):
         else:
             content = ''
 
-        # Rebuild or update the index after updating the note
-        embedder.build_or_update_index(NOTES_DIRECTORY)
-        similar_notes = embedder.find_similar(content, n=5)
+        similar_notes = format_similar(content)
 
         return render_template('note.html', content=content, filename=filename, similar_notes=similar_notes)
 
@@ -63,6 +66,13 @@ def note_content(filename):
             content = f.read()
         return content
     return "Note not found", 404
+
+def format_similar(content):
+    # Rebuild or update the index after updating the note
+    embedder.build_or_update_index(NOTES_DIRECTORY)
+    similar_notes = embedder.find_similar(content, n=5)
+    formatted_similar_notes = [(name, f"{similarity:.3f}") for name, similarity in similar_notes]
+    return formatted_similar_notes
 
 if __name__ == '__main__':
     app.run(debug=True)
