@@ -8,7 +8,7 @@ def test_index_documents(tmpdir):
     with open(test_file_path, 'w') as f:
         f.write('test text')
 
-    index_file = os.path.join(tmpdir, 'index.ann')
+    index_file = os.path.join(tmpdir, '.noter/index.ann')
     index_documents(tmpdir, index_file)
 
     assert os.path.exists(index_file)
@@ -19,7 +19,7 @@ def test_search_documents_excludes_self(tmpdir):
     with open(test_file_path, 'w') as f:
         f.write('test text')
 
-    index_file = os.path.join(tmpdir, 'index.ann')
+    index_file = os.path.join(tmpdir, '.noter/index.ann')
     index_documents(tmpdir, index_file)
 
     results = search_documents(test_file_path, 1, index_file)
@@ -36,7 +36,7 @@ def test_search_documents(tmpdir):
     with open(test_file_path_2, 'w') as f:
         f.write('test text 2')
 
-    index_file = os.path.join(tmpdir, 'index.ann')
+    index_file = os.path.join(tmpdir, '.noter/index.ann')
     index_documents(tmpdir, index_file)
 
     results = search_documents(test_file_path_2, 1, index_file)

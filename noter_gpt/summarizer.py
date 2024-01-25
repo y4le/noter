@@ -9,7 +9,7 @@ MAX_SUMMARY_LENGTH = 500
 MAX_LOCAL_INPUT_CHARS = 4000
 
 CACHE_SIZE = 1000
-CACHE_FILE = 'file_summaries.json'
+CACHE_FILE = '.noter/file_summaries.json'
 
 HUGGINGFACE_SUMMARIZATION_MODELS = [
     "facebook/bart-large-cnn",
@@ -28,7 +28,7 @@ class SummarizerInterface(ABC):
             return {}
 
     def _save_cache(self):
-        with open(CACHE_FILE, 'w') as f:
+        with open(CACHE_FILE, 'w+') as f:
             json.dump(self.cache, f)
 
     def _get_key(self, text: str) -> str:

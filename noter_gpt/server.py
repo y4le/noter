@@ -5,7 +5,7 @@ import os
 
 app = Flask(__name__)
 NOTES_DIRECTORY = 'notes'
-INDEX_FILE = 'index.ann'  # File for the Annoy index
+INDEX_FILE = '.noter/index.ann'  # File for the Annoy index
 
 # Ensure the notes directory exists
 os.makedirs(NOTES_DIRECTORY, exist_ok=True)

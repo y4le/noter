@@ -24,7 +24,7 @@ if __name__ == "__main__":
     parser.add_argument("command", choices=["index", "search", "summarize"])
     parser.add_argument("directory_or_file")
     parser.add_argument("--n", type=int, default=5, help="Number of similar documents to retrieve")
-    parser.add_argument("--index_file", default="index.ann", help="Filepath for saving/loading the index")
+    parser.add_argument("--index_file", default=".noter/index.ann", help="Filepath for saving/loading the index")
     args = parser.parse_args()
 
     if args.command == "index":

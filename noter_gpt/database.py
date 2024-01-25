@@ -9,17 +9,27 @@ from annoy import AnnoyIndex
 
 from noter_gpt.embedder import EmbedderInterface, TransformersEmbedder
 
+HASH_CACHE_PATH = '.noter/file_hashes.json'
+
 class VectorDatabaseInterface(ABC):
     def __init__(self):
         self.documents = {}  # Stores file paths, hashes, and embeddings
         self.need_rebuild = True  # Flag to check if rebuild is required
 
-    def build_or_update_index(self, directory: str) -> None:
+    def _load_documents(self) -> None:
         try:
-            with open('file_hashes.json', 'r') as f:
+            with open(HASH_CACHE_PATH, 'r') as f:
                 self.documents = json.load(f)
         except FileNotFoundError:
             self.documents = {}
+
+    def _save_documents(self) -> None:
+        os.makedirs(os.path.dirname(HASH_CACHE_PATH), exist_ok=True)
+        with open(HASH_CACHE_PATH, 'w+') as f:
+            json.dump(self.documents, f)
+
+    def build_or_update_index(self, directory: str) -> None:
+        self._load_documents()
 
         all_file_paths = glob.glob(os.path.join(directory, "*.txt"))
         for file_path in all_file_paths:
@@ -39,8 +49,7 @@ class VectorDatabaseInterface(ABC):
         if self.need_rebuild:
             self.rebuild_index()
 
-        with open('file_hashes.json', 'w') as f:
-            json.dump(self.documents, f)
+        self._save_documents()
 
     @abstractmethod
     def get_embedding(self, text: str) -> List[float]:
@@ -55,7 +64,7 @@ class VectorDatabaseInterface(ABC):
         pass
 
 class AnnoyDatabase(VectorDatabaseInterface):
-    def __init__(self, embedder: EmbedderInterface = None, index_file: str = 'index.ann'):
+    def __init__(self, embedder: EmbedderInterface = None, index_file: str = '.noter/index.ann'):
         super().__init__()
         if not embedder:
             self.embedder = TransformersEmbedder()
@@ -75,12 +84,13 @@ class AnnoyDatabase(VectorDatabaseInterface):
             self.index.add_item(self.item_count, doc['embedding'])
             self.item_count += 1  # Increment the counter for each item
         self.index.build(20)
+        os.makedirs(os.path.dirname(self.index_file), exist_ok=True)
         self.index.save(self.index_file)
         self.need_rebuild = False
 
     def load_index(self) -> None:
         self.index.load(self.index_file)
-        with open('file_hashes.json', 'r') as f:
+        with open(HASH_CACHE_PATH, 'r') as f:
             self.documents = json.load(f)
 
     def find_similar(self, query_text: str, n: int = 5) -> List[Tuple[str, float]]:
