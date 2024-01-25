@@ -1,49 +1,60 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>Edit Note</title>
-    <script>
-        function viewSideBySide(similarNote) {
-            fetch('/note-content/' + similarNote)
-                .then(response => response.text())
-                .then(data => {
-                    document.getElementById('similarContent').innerText = data;
-                    document.getElementById('similarContent').style = "flex: 1; height: 100%; border:1px solid #ccc; padding: 5px; overflow: auto;";
-                });
-        }
+    <title>Edit Note: {{ filename }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/note.css') }}">
+    <script src="{{ url_for('static', filename='js/note.js') }}"></script>
+    <script type="module">
+        summarizeText('main_content', 'main_content_summary')
     </script>
 </head>
+
 <body>
     <h1>
-      Edit Note: {{ filename }}
-      <a href="{{ url_for('index') }}" style="float: right;">Back</a>
+        Edit Note: {{ filename }}
+        <a href="{{ url_for('index') }}" style="float: right;">Back</a>
     </h1>
     <form method="POST">
-        <div id="textContent" style="display: flex; height: 70vh; margin-bottom: 15px;">
-          <textarea name="content" style="flex: 1; height: 100%">{{ content }}</textarea>
+        <div id="pane_wrapper">
 
-          <div id="similarContent" style="flex: 0; height: 100%;">
-              <!-- Similar note content will be displayed here -->
-          </div><br>
+            <div id="main_content_wrapper" class="content_pane">
+                <textarea id="main_content" name="main_content">{{ content }}</textarea>
+                <div class="content_summary">
+                    <div id="main_content_summary"></div>
+                    <progress id="summary_progress" class="progress"></progress>
+                </div>
+            </div>
+
+            <div id="similar_content_wrapper" class="content_pane" style="display: none;">
+                <div id="similar_content"></div>
+                <div class="content_summary">
+                    <div id="similar_content_summary"></div>
+                    <progress id="similar_progress" class="progress"></progress>
+                </div>
+            </div>
+
         </div>
 
-        <div>
-          <input type="submit" name="save" value="Save">
-          New Filename: <input type="text" name="new_filename" value="{{ filename }}">
-          <input type="submit" name="delete" value="Delete" onclick="return confirm('Are you sure you want to delete this note?');">
+        <div id="form_controls">
+            <input type="submit" name="save" value="Save">
+            New Filename: <input type="text" name="new_filename" value="{{ filename }}">
+            <input type="submit" name="delete" value="Delete"
+                onclick="return confirm('Are you sure you want to delete this note?');">
         </div>
     </form>
 
     {% if similar_notes %}
-        <h2>Similar Notes:</h2>
-        <ul>
-            {% for note, similarity in similar_notes %}
-                <li> ({{ similarity }})
-                  <button onclick="viewSideBySide('{{ note }}')"><-></button>
-                  <a href="{{ url_for('note', filename=note) }}">{{ note }}</a>
-                </li>
-            {% endfor %}
-        </ul>
+    <h2>Similar Notes:</h2>
+    <ul>
+        {% for note, similarity in similar_notes %}
+        <li> ({{ similarity }})
+            <button onclick="viewSideBySide('{{ note }}')"><-></button>
+            <a href="{{ url_for('note', filename=note) }}">{{ note }}</a>
+        </li>
+        {% endfor %}
+    </ul>
     {% endif %}
 </body>
+
 </html>

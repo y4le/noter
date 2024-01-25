@@ -1,5 +1,6 @@
 from flask import Flask, request, render_template, redirect, url_for
 from database import AnnoyDatabase
+from summarizer import LocalSummarizer
 import os
 
 app = Flask(__name__)
@@ -12,6 +13,9 @@ os.makedirs(NOTES_DIRECTORY, exist_ok=True)
 # Initialize the Documentdatabase and build the index
 database = AnnoyDatabase(index_file=INDEX_FILE)
 database.build_or_update_index(NOTES_DIRECTORY)
+
+# Initialize the LocalSummarizer
+summarizer = LocalSummarizer()
 
 @app.route('/')
 def index():
@@ -28,7 +32,7 @@ def note(filename):
                 database.build_or_update_index(NOTES_DIRECTORY)  # Update the index after deletion
             return redirect(url_for('index'))
 
-        content = request.form['content']
+        content = request.form['main_content']
         new_filename = request.form.get('new_filename', filename)
         new_filepath = os.path.join(NOTES_DIRECTORY, new_filename)
 
@@ -65,7 +69,22 @@ def note_content(filename):
         with open(filepath, 'r') as f:
             content = f.read()
         return content
-    return "Note not found", 404
+    return f"Note for {filename} not found", 404
+
+@app.route('/note-summary/<filename>')
+def note_summary(filename):
+    filepath = os.path.join(NOTES_DIRECTORY, filename)
+    if os.path.exists(filepath):
+        with open(filepath, 'r') as f:
+            content = f.read()
+        return summarizer.summarize(content)
+    return f"Note for {filename} not found", 404
+
+@app.route('/text-summary', methods=['POST'])
+def text_summary():
+    data = request.get_json()
+    text = data['text']
+    return summarizer.summarize(text)
 
 def format_similar(content):
     # Rebuild or update the index after updating the note

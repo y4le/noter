@@ -4,11 +4,11 @@
     <title>Notes</title>
     <script>
         function filterNotes() {
-            var regexPattern = document.getElementById('regexPattern').value;
+            var regex_pattern = document.getElementById('regex_pattern').value;
             var notes = document.getElementsByClassName('note');
 
             for (var i = 0; i < notes.length; i++) {
-                if (notes[i].innerText.match(new RegExp(regexPattern, 'i'))) {
+                if (notes[i].innerText.match(new RegExp(regex_pattern, 'i'))) {
                     notes[i].style.display = '';
                 } else {
                     notes[i].style.display = 'none';
@@ -20,7 +20,7 @@
 <body>
     <h1>Notes</h1>
 
-    Regex Filter: <input type="text" id="regexPattern" onkeyup="filterNotes()"><br><br>
+    Regex Filter: <input type="text" id="regex_pattern" onkeyup="filterNotes()"><br><br>
 
     <ul>
         {% for note in notes %}

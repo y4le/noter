@@ -1,0 +1,44 @@
+#pane_wrapper {
+  display: flex;
+  height: 70vh;
+  margin: 0 -5px 15px -5px;
+}
+
+.content_pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  margin: 0 5px;
+  border: 1px solid;
+}
+
+.content_summary {
+  border: 1px solid #ccc;
+  padding: 5px;
+  background: rgba(1, 1, 1, 0.05)
+}
+
+#similar_content {
+  width: 100%;
+  height: 100%;
+  padding: 2px;
+  overflow: auto;
+}
+
+#main_content {
+  width: 100%;
+  height: 100%;
+  resize: none;
+  border: none;
+  box-sizing: border-box;
+}
+
+.progress {
+  width: 100%;
+  display: none;
+}
+
+.content_summary[aria-busy=true] > .progress {
+  display: block;
+}
