@@ -29,6 +29,7 @@ def test_local_summarizer():
     assert isinstance(summary, str)
     assert len(summary) < len(LOREM_IPSUM)
 
+@pytest.mark.skip(reason="temporarily disabled API usage reasons")
 def test_openai_summarizer():
     summarizer = OpenAISummarizer()
     summary = summarizer.summarize_text(LOREM_IPSUM)
@@ -42,6 +43,7 @@ def test_local_summarizer_cache():
     summary2 = summarizer.summarize_text(text)
     assert summary1 == summary2
 
+@pytest.mark.skip(reason="temporarily disabled API usage reasons")
 def test_openai_summarizer_cache():
     summarizer = OpenAISummarizer()
     text = "This is a test text for summarization."

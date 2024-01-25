@@ -1,4 +1,3 @@
-import pytest
 import os
 from noter_gpt.cli import index_documents, search_documents
 
