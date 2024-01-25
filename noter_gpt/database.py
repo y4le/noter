@@ -10,25 +10,9 @@ from annoy import AnnoyIndex
 from noter_gpt.embedder import EmbedderInterface, TransformersEmbedder
 
 class VectorDatabaseInterface(ABC):
-    @abstractmethod
-    def build_or_update_index(self, directory: str) -> None:
-        pass
-
-    @abstractmethod
-    def find_similar(self, query_text: str, n: int = 5) -> List[Tuple[str, float]]:
-        pass
-
-class AnnoyDatabase(VectorDatabaseInterface):
-    def __init__(self, embedder: EmbedderInterface = None, index_file: str = 'index.ann'):
-        if not embedder:
-            self.embedder = TransformersEmbedder()
-        else:
-            self.embedder = embedder
-        self.index = AnnoyIndex(768, 'angular')  # Dimension for BERT base
-        self.index_file = index_file
+    def __init__(self):
         self.documents = {}  # Stores file paths, hashes, and embeddings
         self.need_rebuild = True  # Flag to check if rebuild is required
-        self.item_count = 0  # Counter for the number of items in the index
 
     def build_or_update_index(self, directory: str) -> None:
         try:
@@ -45,8 +29,8 @@ class AnnoyDatabase(VectorDatabaseInterface):
             doc_hash = hashlib.md5(text.encode('utf-8')).hexdigest()
 
             if file_path not in self.documents or self.documents[file_path]['hash'] != doc_hash:
-                embedding = self.embedder.embed_document(text)
-                self.documents[file_path] = {'hash': doc_hash, 'embedding': embedding.tolist()}
+                embedding = self.get_embedding(text)
+                self.documents[file_path] = {'hash': doc_hash, 'embedding': embedding}
                 self.need_rebuild = True
 
         # Remove documents that no longer exist
@@ -57,6 +41,32 @@ class AnnoyDatabase(VectorDatabaseInterface):
 
         with open('file_hashes.json', 'w') as f:
             json.dump(self.documents, f)
+
+    @abstractmethod
+    def get_embedding(self, text: str) -> List[float]:
+        pass
+
+    @abstractmethod
+    def rebuild_index(self) -> None:
+        pass
+
+    @abstractmethod
+    def find_similar(self, query_text: str, n: int = 5) -> List[Tuple[str, float]]:
+        pass
+
+class AnnoyDatabase(VectorDatabaseInterface):
+    def __init__(self, embedder: EmbedderInterface = None, index_file: str = 'index.ann'):
+        super().__init__()
+        if not embedder:
+            self.embedder = TransformersEmbedder()
+        else:
+            self.embedder = embedder
+        self.index = AnnoyIndex(768, 'angular')  # Dimension for BERT base
+        self.index_file = index_file
+        self.item_count = 0  # Counter for the number of items in the index
+
+    def get_embedding(self, text: str) -> List[float]:
+        return self.embedder.embed_document(text).tolist()
 
     def rebuild_index(self) -> None:
         self.index = AnnoyIndex(768, 'angular')
