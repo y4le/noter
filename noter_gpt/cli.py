@@ -17,9 +17,7 @@ def search_documents(query_file, n, index_file):
 
 def summarize_document(file_path):
     summarizer = LocalSummarizer()
-    with open(file_path, 'r', encoding='utf-8') as file:
-        text = file.read()
-    return summarizer.summarize(text)
+    return summarizer.summarize_file(file_path)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Document database CLI")

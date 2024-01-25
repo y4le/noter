@@ -2,6 +2,7 @@ __pycache__/
 *.pyc
 
 file_hashes.json
+file_summaries.json
 index.ann
 
 .env

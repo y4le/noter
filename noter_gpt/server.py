@@ -75,16 +75,14 @@ def note_content(filename):
 def note_summary(filename):
     filepath = os.path.join(NOTES_DIRECTORY, filename)
     if os.path.exists(filepath):
-        with open(filepath, 'r') as f:
-            content = f.read()
-        return summarizer.summarize(content)
+        return summarizer.summarize_file(filepath)
     return f"Note for {filename} not found", 404
 
 @app.route('/text-summary', methods=['POST'])
 def text_summary():
     data = request.get_json()
     text = data['text']
-    return summarizer.summarize(text)
+    return summarizer.summarize_text(text)
 
 def format_similar(content):
     # Rebuild or update the index after updating the note

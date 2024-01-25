@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/note.css') }}">
     <script src="{{ url_for('static', filename='js/note.js') }}"></script>
     <script type="module">
-        summarizeText('main_content', 'main_content_summary')
+        summarizeFile("{{ filename }}", 'main_content_summary')
     </script>
 </head>
 

@@ -4,22 +4,21 @@ function viewSideBySide(similarNote) {
     .then(data => {
       document.getElementById('similar_content').innerText = data;
       document.getElementById('similar_content_wrapper').style.display = 'flex';
-      summarizeText('similar_content', 'similar_content_summary', true)
+      summarizeFile(similarNote, 'similar_content_summary', true)
     });
 }
 
 let fetchController;
 
-function summarizeText(sourceId, targetId, checkChanged = false) {
+function summarizeFile(filename, targetId, checkChanged = false) {
   document.getElementById(targetId).innerText = "";
   document.getElementById(targetId).parentNode.ariaBusy = true;
 
   const fetchOptions = {
-    method: 'POST',
+    method: 'GET',
     headers: {
-      'Content-Type': 'application/json',
+      'Accept': 'application/json',
     },
-    body: JSON.stringify({ text: extractTextFromElementById(sourceId) })
   };
 
   if (checkChanged) {
@@ -30,7 +29,7 @@ function summarizeText(sourceId, targetId, checkChanged = false) {
     fetchOptions.signal = fetchController.signal;
   }
 
-  fetch('/text-summary', fetchOptions)
+  fetch('/note-summary/' + filename, fetchOptions)
     .then(response => response.text())
     .then(summary => {
       document.getElementById(targetId).innerText = summary;
