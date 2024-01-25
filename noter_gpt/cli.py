@@ -1,22 +1,29 @@
 import argparse
-from document_embedder import DocumentEmbedder
+from noter_gpt.database import AnnoyDatabase
+from noter_gpt.summarizer import LocalSummarizer
 
 def index_documents(directory, index_file):
-    embedder = DocumentEmbedder(index_file=index_file)
-    embedder.build_or_update_index(directory)
+    database = AnnoyDatabase(index_file=index_file)
+    database.build_or_update_index(directory)
 
 def search_documents(query_file, n, index_file):
-    embedder = DocumentEmbedder(index_file=index_file)
-    embedder.load_index()
+    database = AnnoyDatabase(index_file=index_file)
+    database.load_index()
 
     with open(query_file, 'r', encoding='utf-8') as file:
         query_text = file.read()
 
-    return embedder.find_similar(query_text, n)
+    return database.find_similar(query_text, n)
+
+def summarize_document(file_path):
+    summarizer = LocalSummarizer()
+    with open(file_path, 'r', encoding='utf-8') as file:
+        text = file.read()
+    return summarizer.summarize(text)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Document Embedder CLI")
-    parser.add_argument("command", choices=["index", "search"])
+    parser = argparse.ArgumentParser(description="Document database CLI")
+    parser.add_argument("command", choices=["index", "search", "summarize"])
     parser.add_argument("directory_or_file")
     parser.add_argument("--n", type=int, default=5, help="Number of similar documents to retrieve")
     parser.add_argument("--index_file", default="index.ann", help="Filepath for saving/loading the index")
@@ -27,3 +34,6 @@ if __name__ == "__main__":
     elif args.command == "search":
         results = search_documents(args.directory_or_file, args.n, args.index_file)
         print(results)
+    elif args.command == "summarize":
+        summary = summarize_document(args.directory_or_file)
+        print(summary)

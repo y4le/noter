@@ -1,5 +1,5 @@
 from flask import Flask, request, render_template, redirect, url_for
-from document_embedder import DocumentEmbedder  # Import the DocumentEmbedder class
+from database import AnnoyDatabase
 import os
 
 app = Flask(__name__)
@@ -9,9 +9,9 @@ INDEX_FILE = 'index.ann'  # File for the Annoy index
 # Ensure the notes directory exists
 os.makedirs(NOTES_DIRECTORY, exist_ok=True)
 
-# Initialize the DocumentEmbedder and build the index
-embedder = DocumentEmbedder(index_file=INDEX_FILE)
-embedder.build_or_update_index(NOTES_DIRECTORY)
+# Initialize the Documentdatabase and build the index
+database = AnnoyDatabase(index_file=INDEX_FILE)
+database.build_or_update_index(NOTES_DIRECTORY)
 
 @app.route('/')
 def index():
@@ -25,7 +25,7 @@ def note(filename):
             original_filepath = os.path.join(NOTES_DIRECTORY, filename)
             if os.path.exists(original_filepath):
                 os.remove(original_filepath)
-                embedder.build_or_update_index(NOTES_DIRECTORY)  # Update the index after deletion
+                database.build_or_update_index(NOTES_DIRECTORY)  # Update the index after deletion
             return redirect(url_for('index'))
 
         content = request.form['content']
@@ -69,8 +69,8 @@ def note_content(filename):
 
 def format_similar(content):
     # Rebuild or update the index after updating the note
-    embedder.build_or_update_index(NOTES_DIRECTORY)
-    similar_notes = embedder.find_similar(content, n=5)
+    database.build_or_update_index(NOTES_DIRECTORY)
+    similar_notes = database.find_similar(content, n=5)
     formatted_similar_notes = [(name, f"{similarity:.3f}") for name, similarity in similar_notes]
     return formatted_similar_notes
 

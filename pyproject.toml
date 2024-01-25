@@ -12,6 +12,8 @@ torch = "^2.1.2"
 annoy = "^1.17.3"
 argparse = "^1.4.0"
 flask = "^3.0.1"
+pytest = "^7.4.4"
+openai = "^1.9.0"
 
 
 [build-system]

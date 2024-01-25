@@ -1,28 +1,36 @@
-from transformers import AutoTokenizer, AutoModel
-import torch
-from annoy import AnnoyIndex
-import os
 import glob
-import json
 import hashlib
+import json
+import os
+from abc import ABC, abstractmethod
+from typing import List, Tuple
 
-class DocumentEmbedder:
-    def __init__(self, model_name="bert-base-uncased", index_file='index.ann'):
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModel.from_pretrained(model_name)
+from annoy import AnnoyIndex
+
+from noter_gpt.embedder import EmbedderInterface, TransformersEmbedder
+
+class VectorDatabaseInterface(ABC):
+    @abstractmethod
+    def build_or_update_index(self, directory: str) -> None:
+        pass
+
+    @abstractmethod
+    def find_similar(self, query_text: str, n: int = 5) -> List[Tuple[str, float]]:
+        pass
+
+class AnnoyDatabase(VectorDatabaseInterface):
+    def __init__(self, embedder: EmbedderInterface = None, index_file: str = 'index.ann'):
+        if not embedder:
+            self.embedder = TransformersEmbedder()
+        else:
+            self.embedder = embedder
         self.index = AnnoyIndex(768, 'angular')  # Dimension for BERT base
         self.index_file = index_file
         self.documents = {}  # Stores file paths, hashes, and embeddings
         self.need_rebuild = True  # Flag to check if rebuild is required
         self.item_count = 0  # Counter for the number of items in the index
 
-    def embed_document(self, text):
-        inputs = self.tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
-        with torch.no_grad():
-            outputs = self.model(**inputs)
-        return outputs.last_hidden_state.mean(dim=1).squeeze().numpy()
-
-    def build_or_update_index(self, directory):
+    def build_or_update_index(self, directory: str) -> None:
         try:
             with open('file_hashes.json', 'r') as f:
                 self.documents = json.load(f)
@@ -37,7 +45,7 @@ class DocumentEmbedder:
             doc_hash = hashlib.md5(text.encode('utf-8')).hexdigest()
 
             if file_path not in self.documents or self.documents[file_path]['hash'] != doc_hash:
-                embedding = self.embed_document(text)
+                embedding = self.embedder.embed_document(text)
                 self.documents[file_path] = {'hash': doc_hash, 'embedding': embedding.tolist()}
                 self.need_rebuild = True
 
@@ -50,29 +58,29 @@ class DocumentEmbedder:
         with open('file_hashes.json', 'w') as f:
             json.dump(self.documents, f)
 
-    def rebuild_index(self):
+    def rebuild_index(self) -> None:
         self.index = AnnoyIndex(768, 'angular')
         self.item_count = 0  # Reset the counter
         for doc in self.documents.values():
             self.index.add_item(self.item_count, doc['embedding'])
             self.item_count += 1  # Increment the counter for each item
-        self.index.build(10)
+        self.index.build(20)
         self.index.save(self.index_file)
         self.need_rebuild = False
 
-    def load_index(self):
+    def load_index(self) -> None:
         self.index.load(self.index_file)
         with open('file_hashes.json', 'r') as f:
             self.documents = json.load(f)
 
-    def find_similar(self, query_text, n=5):
+    def find_similar(self, query_text: str, n: int = 5) -> List[Tuple[str, float]]:
         if not query_text:
             return []
 
         if self.need_rebuild:
             self.rebuild_index()
 
-        query_embedding = self.embed_document(query_text)
+        query_embedding = self.embedder.embed_document(query_text)
         indices, distances = self.index.get_nns_by_vector(query_embedding, n+1, include_distances=True)
         similar_files = [(os.path.basename(list(self.documents)[i]), 1/(1 + d)) for i, d in zip(indices, distances)]
         return similar_files[1:] # exclude self

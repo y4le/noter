@@ -3,3 +3,7 @@ __pycache__/
 
 file_hashes.json
 index.ann
+
+.env
+.vscode
+
