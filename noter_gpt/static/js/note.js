@@ -8,36 +8,39 @@ function viewSideBySide(similarNote) {
     });
 }
 
-function summarizeContent(filename, targetId) {
-  document.getElementById(targetId).innerText = "";
-  document.getElementById(targetId).parentNode.ariaBusy = true;
-  fetch('/note-summary/' + filename)
-    .then(response => response.text())
-    .then(summary => {
-      document.getElementById(targetId).innerText = summary;
-      document.getElementById(targetId).parentNode.ariaBusy = false;
-    });
-}
+let fetchController;
 
 function summarizeText(sourceId, targetId, checkChanged = false) {
   document.getElementById(targetId).innerText = "";
   document.getElementById(targetId).parentNode.ariaBusy = true;
-  sourceText = extractTextFromElementById(sourceId);
 
-  fetch('/text-summary', {
+  const fetchOptions = {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ text: sourceText })
-  })
+    body: JSON.stringify({ text: extractTextFromElementById(sourceId) })
+  };
+
+  if (checkChanged) {
+    if (fetchController) {
+      fetchController.abort(); // cancel previous request if necessary
+    }
+    fetchController = new AbortController();
+    fetchOptions.signal = fetchController.signal;
+  }
+
+  fetch('/text-summary', fetchOptions)
     .then(response => response.text())
     .then(summary => {
-      if (checkChanged && extractTextFromElementById(sourceId) != sourceText) {
-        return;
-      }
       document.getElementById(targetId).innerText = summary;
       document.getElementById(targetId).parentNode.ariaBusy = false;
+    }).catch(error => {
+      if (error.name === 'AbortError') {
+        console.log('Fetch aborted');
+      } else {
+        console.error('Fetch error:', error);
+      }
     });
 }
 
