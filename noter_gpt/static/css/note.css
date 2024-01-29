@@ -1,6 +1,6 @@
 #pane_wrapper {
   display: flex;
-  height: 70vh;
+  height: 85vh;
   margin: 0 -5px 15px -5px;
 }
 
@@ -41,4 +41,28 @@
 
 .content_summary[aria-busy=true] > .progress {
   display: block;
+}
+
+.similar_notes {
+  display: flex;
+  padding: 0;
+  margin: 0 -10px;
+}
+
+.similar_note {
+  display: inline-flex;
+  flex-direction: column;
+  margin: 5px 10px;
+  border: 1px solid;
+  padding: 5px;
+  min-width: 100px;
+}
+
+.similarity_row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.similarity_button {
+  padding: 0px;
 }

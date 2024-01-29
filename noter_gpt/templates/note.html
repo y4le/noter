@@ -13,15 +13,14 @@
 <body>
     <form method="POST">
 
-        <div id="form_controls">
-            <h1>
-                Editing: <input type="text" name="new_filename" value="{{ filename }}">
-                <input type="submit" name="save" value="Save">
-                <input type="submit" name="delete" value="Delete"
-                    onclick="return confirm('Are you sure you want to delete this note?');">
-                <a href="{{ url_for('index') }}" style="float: right;">Back</a>
-            </h1>
-        </div>
+        <h2 id="form_controls">
+            Editing: <input type="text" name="new_filename" value="{{ filename }}">
+            <input type="submit" name="save" value="Save">
+            <input type="submit" name="delete" value="Delete"
+                onclick="return confirm('Are you sure you want to delete this note?');">
+            <a href="{{ url_for('index') }}" style="float: right;">Back</a>
+
+        </h2>
 
         <div id="pane_wrapper">
 
@@ -46,11 +45,13 @@
     </form>
 
     {% if similar_notes %}
-    <h2>Similar Notes:</h2>
-    <ul>
+    <ul class="similar_notes">
         {% for note, similarity in similar_notes %}
-        <li> ({{ similarity }})
-            <button onclick="viewSideBySide('{{ note }}')"><-></button>
+        <li class="similar_note"> 
+            <div class="similarity_row">
+                ({{ similarity }})
+                <button class="similarity_button" onclick="viewSideBySide('{{ note }}')"><-></button>
+            </div>
             <a href="{{ url_for('note', filename=note) }}">{{ note }}</a>
         </li>
         {% endfor %}
