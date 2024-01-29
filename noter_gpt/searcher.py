@@ -48,7 +48,9 @@ class NativeSearcher(SearcherInterface):
         with open(file_path, "r") as f:
             for line in f:
                 if is_regex:
-                    if re.search(query, line, 0 if is_case_sensitive else re.IGNORECASE):
+                    if re.search(
+                        query, line, 0 if is_case_sensitive else re.IGNORECASE
+                    ):
                         return True
                 else:
                     if is_case_sensitive:
