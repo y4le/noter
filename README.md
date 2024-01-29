@@ -12,7 +12,7 @@
 - [X] parameterize notes folder, storage location, local/openai
 - [X] cache summarizations based on file hash
 - [X] look into ripgrepy for local full text file search
-- [ ] add text search to index.html
+- [X] add text search to index.html
 - [ ] recursively summarize large files with LocalSummarizer
 - [ ] rethink how to specify where .noter is stored, shouldn't be based on run dir
 - [ ] auto summarize documents in background

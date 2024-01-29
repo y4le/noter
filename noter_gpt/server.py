@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, redirect, url_for
 from database import AnnoyDatabase
 from summarizer import LocalSummarizer
+from searcher import get_searcher
 import os
 
 app = Flask(__name__)
@@ -17,6 +18,8 @@ database.build_or_update_index(NOTES_DIRECTORY)
 # Initialize the LocalSummarizer
 summarizer = LocalSummarizer()
 
+# Initialize the Searcher
+searcher = get_searcher()
 
 @app.route("/")
 def index():
@@ -97,6 +100,16 @@ def text_summary():
     data = request.get_json()
     text = data["text"]
     return summarizer.summarize_text(text)
+
+
+@app.route("/search-full-text")
+def search_full_text():
+    query = request.args.get('query', '')
+    if query:
+        documents = searcher.text_search(query, root_path=NOTES_DIRECTORY)
+        return render_template("index.html", notes=documents, query=query)
+    else:
+        return redirect(url_for('index'))
 
 
 def format_similar(content):

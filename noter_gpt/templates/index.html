@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Notes</title>
+    <title>{% if query %}Search results for: "{{ query }}"{% else %}Notes{% endif %}</title>
     <script>
         function filterNotes() {
             var regex_pattern = document.getElementById('regex_pattern').value;
@@ -18,9 +18,16 @@
     </script>
 </head>
 <body>
-    <h1>Notes</h1>
+    <h1>{% if query %}Search results for: "{{ query }}"{% else %}Notes{% endif %}</h1>
 
-    Regex Filter: <input type="text" id="regex_pattern" onkeyup="filterNotes()"><br><br>
+    <form action="/search-full-text" method="get">
+        Fulltext Search: <input type="text" name="query" id="fulltext_search">
+        <input type="submit" value="Search">
+    </form>
+
+    <br>
+
+    Regex Filename Filter: <input type="text" id="regex_pattern" onkeyup="filterNotes()"><br><br>
 
     <ul>
         {% for note in notes %}
