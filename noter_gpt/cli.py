@@ -2,23 +2,15 @@ import argparse
 from typing import List, Tuple
 from noter_gpt.database import AnnoyDatabase
 from noter_gpt.summarizer import LocalSummarizer
-
-
-def index_documents(directory: str, cache_dir: str) -> None:
-    database = AnnoyDatabase(cache_dir=cache_dir)
-    database.build_or_update_index(directory)
+from noter_gpt.storage import Storage
 
 
 def search_documents(
-    query_file: str, n: int, cache_dir: str
+    query_file: str, n: int, storage: Storage
 ) -> List[Tuple[str, float]]:
-    database = AnnoyDatabase(cache_dir=cache_dir)
-    database._load_documents()
-
-    with open(query_file, "r", encoding="utf-8") as file:
-        query_text = file.read()
-
-    return database.find_similar(query_text, n)
+    database = AnnoyDatabase(storage=storage)
+    database.build_or_update_index()
+    return database.find_similar_to_file(query_file, n)
 
 
 def summarize_document(file_path: str) -> str:
@@ -34,16 +26,17 @@ if __name__ == "__main__":
         "--n", type=int, default=5, help="Number of similar documents to retrieve"
     )
     parser.add_argument(
-        "--cache_dir",
-        default=".noter/",
-        help="Filepath for saving/loading caches",
+        "--root-path", type=str, default=None, help="Root path for the storage"
+    )
+    parser.add_argument(
+        "--cache-path", type=str, default=None, help="Cache path for the storage"
     )
     args = parser.parse_args()
 
-    if args.command == "index":
-        index_documents(args.directory_or_file, args.cache_dir)
-    elif args.command == "search":
-        results = search_documents(args.directory_or_file, args.n, args.cache_dir)
+    storage = Storage(root_path=args.root_path, cache_path=args.cache_path)
+
+    if args.command == "search":
+        results = search_documents(args.directory_or_file, args.n, storage)
         print(results)
     elif args.command == "summarize":
         summary = summarize_document(args.directory_or_file)

@@ -2,46 +2,44 @@ from flask import Flask, request, render_template, redirect, url_for
 from database import AnnoyDatabase
 from summarizer import LocalSummarizer
 from searcher import get_searcher
+from storage import Storage
 import os
 
 app = Flask(__name__)
-NOTES_DIRECTORY = "."
-CACHE_DIR = ".noter/"  # File for the Annoy index
 
-# Ensure the notes directory exists
-os.makedirs(NOTES_DIRECTORY, exist_ok=True)
+# Initialize Storage
+storage = Storage()
 
 # Initialize the Documentdatabase and build the index
-database = AnnoyDatabase(cache_dir=CACHE_DIR)
-database.build_or_update_index(NOTES_DIRECTORY)
+database = AnnoyDatabase(storage=storage)
+database.build_or_update_index()
 
 # Initialize the LocalSummarizer
-summarizer = LocalSummarizer()
+summarizer = LocalSummarizer(storage=storage)
 
 # Initialize the Searcher
-searcher = get_searcher()
+searcher = get_searcher(storage=storage)
+
 
 @app.route("/")
 def index():
-    notes = [note for note in os.listdir(NOTES_DIRECTORY) if not note.startswith('.')]
+    notes = [note for note in storage.all_notes()]
     return render_template("index.html", notes=notes)
 
 
-@app.route("/note/<filename>", methods=["GET", "POST"])
+@app.route("/note/<path:filename>", methods=["GET", "POST"])
 def note(filename):
     if request.method == "POST":
         if "delete" in request.form:
-            original_filepath = os.path.join(NOTES_DIRECTORY, filename)
+            original_filepath = storage.note_abs_path(filename)
             if os.path.exists(original_filepath):
                 os.remove(original_filepath)
-                database.build_or_update_index(
-                    NOTES_DIRECTORY
-                )  # Update the index after deletion
+                database.build_or_update_index()  # Update the index after deletion
             return redirect(url_for("index"))
 
         content = request.form["main_content"]
         new_filename = request.form.get("new_filename", filename)
-        new_filepath = os.path.join(NOTES_DIRECTORY, new_filename)
+        new_filepath = os.path.join(storage.root_path, new_filename)
 
         # Save or update the content
         with open(new_filepath, "w") as f:
@@ -49,7 +47,7 @@ def note(filename):
 
         # If the filename has been changed, handle the renaming
         if new_filename != filename:
-            original_filepath = os.path.join(NOTES_DIRECTORY, filename)
+            original_filepath = os.path.join(storage.root_path, filename)
             if os.path.exists(original_filepath):
                 os.remove(original_filepath)
 
@@ -63,7 +61,7 @@ def note(filename):
         )
 
     else:
-        filepath = os.path.join(NOTES_DIRECTORY, filename)
+        filepath = storage.note_abs_path(filename)
         if os.path.exists(filepath):
             with open(filepath, "r") as f:
                 content = f.read()
@@ -77,9 +75,9 @@ def note(filename):
         )
 
 
-@app.route("/note-content/<filename>")
+@app.route("/note-content/<path:filename>")
 def note_content(filename):
-    filepath = os.path.join(NOTES_DIRECTORY, filename)
+    filepath = storage.note_abs_path(filename)
     if os.path.exists(filepath):
         with open(filepath, "r") as f:
             content = f.read()
@@ -87,9 +85,9 @@ def note_content(filename):
     return f"Note for {filename} not found", 404
 
 
-@app.route("/note-summary/<filename>")
+@app.route("/note-summary/<path:filename>")
 def note_summary(filename):
-    filepath = os.path.join(NOTES_DIRECTORY, filename)
+    filepath = storage.note_abs_path(filename)
     if os.path.exists(filepath):
         return summarizer.summarize_file(filepath)
     return f"Note for {filename} not found", 404
@@ -104,17 +102,17 @@ def text_summary():
 
 @app.route("/search-full-text")
 def search_full_text():
-    query = request.args.get('query', '')
+    query = request.args.get("query", "")
     if query:
-        documents = searcher.text_search(query, root_path=NOTES_DIRECTORY)
+        documents = searcher.text_search(query)
         return render_template("index.html", notes=documents, query=query)
     else:
-        return redirect(url_for('index'))
+        return redirect(url_for("index"))
 
 
 def format_similar(content):
     # Rebuild or update the index after updating the note
-    database.build_or_update_index(NOTES_DIRECTORY)
+    database.build_or_update_index()
     similar_notes = database.find_similar(content, n=5)
     formatted_similar_notes = [
         (name, f"{similarity:.3f}") for name, similarity in similar_notes

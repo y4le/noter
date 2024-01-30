@@ -2,14 +2,16 @@ import os
 import hashlib
 import json
 from abc import ABC, abstractmethod
+
 from openai import OpenAI
 from transformers import pipeline
+
+from noter_gpt.storage import Storage
 
 MAX_SUMMARY_LENGTH = 500
 MAX_LOCAL_INPUT_CHARS = 4000
 
 CACHE_SIZE = 1000
-CACHE_FILE = ".noter/file_summaries.json"
 
 HUGGINGFACE_SUMMARIZATION_MODELS = [
     "facebook/bart-large-cnn",
@@ -18,35 +20,47 @@ HUGGINGFACE_SUMMARIZATION_MODELS = [
 
 
 class SummarizerInterface(ABC):
-    def __init__(self):
+    def __init__(self, storage: Storage = None):
+        self.storage = storage
+        if not self.storage:
+            self.storage = Storage()
+
         self.cache = self._load_cache()
 
     def _load_cache(self):
         try:
-            with open(CACHE_FILE, "r") as f:
+            with open(self.storage.summary_cache_file(), "r") as f:
                 return json.load(f)
         except FileNotFoundError:
             return {}
 
     def _save_cache(self):
-        with open(CACHE_FILE, "w+") as f:
+        with open(self.storage.summary_cache_file(), "w+") as f:
             json.dump(self.cache, f)
 
-    def _get_key(self, text: str) -> str:
-        hash = hashlib.md5(text.encode("utf-8")).hexdigest()
+    def _get_key(self, text: str, context: str = None) -> str:
+        total_text = text + context if context else text
+        hash = hashlib.md5(total_text.encode("utf-8")).hexdigest()
         return f"{self._cache_model_key()}__{hash}"
 
     def summarize_text(self, text: str, context: str = None) -> str:
-        text_hash = self._get_key(text)
-        if text_hash in self.cache:
-            return self.cache[text_hash]
+        text_hash = self._get_key(text, context)
+        cached_summary = self._get_from_cache(text_hash)
+        if cached_summary:
+            return cached_summary
         else:
             summary = self._summarize(text, context)
-            if len(self.cache) >= CACHE_SIZE:
-                self.cache.pop(next(iter(self.cache)))
-            self.cache[text_hash] = summary
-            self._save_cache()
+            self._add_to_cache(text_hash, summary)
             return summary
+
+    def _get_from_cache(self, key: str) -> str:
+        return self.cache.get(key)
+
+    def _add_to_cache(self, key: str, value: str):
+        if len(self.cache) >= CACHE_SIZE:
+            self.cache.pop(next(iter(self.cache)))
+        self.cache[key] = value
+        self._save_cache()
 
     def summarize_file(self, filepath: str, context: str = None) -> str:
         with open(filepath, "r", encoding="utf-8") as file:
@@ -63,8 +77,10 @@ class SummarizerInterface(ABC):
 
 
 class LocalSummarizer(SummarizerInterface):
-    def __init__(self, model: str = HUGGINGFACE_SUMMARIZATION_MODELS[0]):
-        super().__init__()
+    def __init__(
+        self, storage: Storage = None, model: str = HUGGINGFACE_SUMMARIZATION_MODELS[0]
+    ):
+        super().__init__(storage=storage)
         self.model = model
         self.summarizer = pipeline("summarization", model=model)
 
@@ -84,8 +100,8 @@ class LocalSummarizer(SummarizerInterface):
 
 
 class OpenAISummarizer(SummarizerInterface):
-    def __init__(self, model: str = "gpt-3.5-turbo"):
-        super().__init__()
+    def __init__(self, storage: Storage = None, model: str = "gpt-3.5-turbo"):
+        super().__init__(storage=storage)
         self.client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
         self.model = model
         self._last_response = None  # debugging
