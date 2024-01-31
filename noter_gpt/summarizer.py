@@ -1,3 +1,4 @@
+import asyncio
 import os
 import hashlib
 import json
@@ -8,7 +9,7 @@ from transformers import pipeline
 
 from noter_gpt.storage import Storage
 
-MAX_SUMMARY_LENGTH = 500
+MAX_SUMMARY_LENGTH = 200
 MAX_LOCAL_INPUT_CHARS = 4000
 
 CACHE_SIZE = 1000
@@ -43,6 +44,15 @@ class SummarizerInterface(ABC):
         hash = hashlib.md5(total_text.encode("utf-8")).hexdigest()
         return f"{self._cache_model_key()}__{hash}"
 
+    def _get_from_cache(self, key: str) -> str:
+        return self.cache.get(key)
+
+    def _add_to_cache(self, key: str, value: str):
+        if len(self.cache) >= CACHE_SIZE:
+            self.cache.pop(next(iter(self.cache)))
+        self.cache[key] = value
+        self._save_cache()
+
     def summarize_text(self, text: str, context: str = None) -> str:
         text_hash = self._get_key(text, context)
         cached_summary = self._get_from_cache(text_hash)
@@ -52,15 +62,6 @@ class SummarizerInterface(ABC):
             summary = self._summarize(text, context)
             self._add_to_cache(text_hash, summary)
             return summary
-
-    def _get_from_cache(self, key: str) -> str:
-        return self.cache.get(key)
-
-    def _add_to_cache(self, key: str, value: str):
-        if len(self.cache) >= CACHE_SIZE:
-            self.cache.pop(next(iter(self.cache)))
-        self.cache[key] = value
-        self._save_cache()
 
     def summarize_file(self, filepath: str, context: str = None) -> str:
         with open(filepath, "r", encoding="utf-8") as file:
@@ -84,7 +85,7 @@ class LocalSummarizer(SummarizerInterface):
         self.model = model
         self.summarizer = pipeline("summarization", model=model)
 
-    def _summarize(self, _text: str, context: str = None) -> str:
+    def _summarize(self, _text: str, _: str = None) -> str:
         # TODO: recursively summarize large files rather than truncating
         text = _text
         if len(text) > MAX_LOCAL_INPUT_CHARS:

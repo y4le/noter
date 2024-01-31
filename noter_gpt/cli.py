@@ -2,7 +2,9 @@ import argparse
 from typing import List, Tuple
 from noter_gpt.database import AnnoyDatabase
 from noter_gpt.summarizer import LocalSummarizer
+from noter_gpt.batch_summarizer import BatchSummarizer
 from noter_gpt.storage import Storage
+from noter_gpt.server import run_server
 
 
 def search_documents(
@@ -13,15 +15,23 @@ def search_documents(
     return database.find_similar_to_file(query_file, n)
 
 
-def summarize_document(file_path: str) -> str:
-    summarizer = LocalSummarizer()
+def summarize_document(file_path: str, storage: Storage) -> str:
+    summarizer = LocalSummarizer(storage=storage)
     return summarizer.summarize_file(file_path)
 
 
+def summarize_all(storage: Storage) -> None:
+    summarizer = LocalSummarizer(storage=storage)
+    batch_summarizer = BatchSummarizer(summarizer, storage=storage)
+    return batch_summarizer.summarize_all_notes()
+
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Document database CLI")
-    parser.add_argument("command", choices=["index", "search", "summarize"])
-    parser.add_argument("directory_or_file")
+    parser = argparse.ArgumentParser(description="Noter app CLI")
+    parser.add_argument(
+        "command", choices=["search", "summarize", "summarize_all", "server"]
+    )
+    parser.add_argument("directory_or_file", type=str, nargs="?", default=None)
     parser.add_argument(
         "--n", type=int, default=5, help="Number of similar documents to retrieve"
     )
@@ -39,5 +49,9 @@ if __name__ == "__main__":
         results = search_documents(args.directory_or_file, args.n, storage)
         print(results)
     elif args.command == "summarize":
-        summary = summarize_document(args.directory_or_file)
+        summary = summarize_document(args.directory_or_file, storage)
         print(summary)
+    elif args.command == "summarize_all":
+        summarize_all(storage)
+    elif args.command == "server":
+        run_server()
