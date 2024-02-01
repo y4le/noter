@@ -1,5 +1,19 @@
+# Noter
+
+Noter is a note-taking webapp that helps you write by automatically organizing
+and surfacing other relevant notes. It is a personal project and very much
+still a prototype. Noter uses a vector database to display related notes
+alongside the current note. Notes are automatically summarized and the
+resulting summaries are displayed beneath the full content of each note to
+give you a quick overview. All features are available with local compute for
+privacy, but users have the option to add an OpenAI API key for better and
+quicker summarization and embedding.
+
+<img width="1888" alt="noter_example" src="https://github.com/y4le/noter/assets/6445097/57419615-72ba-4691-a588-5ab1c7b7c627">
+
+
 ## Setup
-- install poetry
+- install poetry [link](https://python-poetry.org/docs/)
 - `poetry env use python3.9`
 - `poetry install`
 - create `.env` file in project directory
@@ -9,8 +23,8 @@
 
 ## Usage
 - optionally pre-cache summaries:
-  - locally generated: `poetry run cli summarize_all`
-  - openai generated: `poetry run cli summarize_all --use-openai`
+  - locally generated: `poetry run cli summarize_all` (takes about 4-5 seconds per file)
+  - openai generated: `poetry run cli summarize_all --use-openai` (takes 1-1.5 seconds per file)
 - start web server:
   - run everything locally: `poetry run cli server`
   - use openAI API: `poetry run cli server --use-openai`
