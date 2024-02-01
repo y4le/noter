@@ -8,7 +8,7 @@ from transformers import pipeline
 
 from noter_gpt.storage import Storage
 
-MAX_SUMMARY_LENGTH = 200
+MAX_SUMMARY_LENGTH = 150
 MAX_LOCAL_INPUT_CHARS = 4000
 
 CACHE_SIZE = 1000
