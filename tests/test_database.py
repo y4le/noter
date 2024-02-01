@@ -9,9 +9,9 @@ def database(storage):
 
 
 def test_build_or_update_index(database, storage):
-    assert not os.path.exists(storage.built_index_file())
+    assert not os.path.exists(storage.built_index_file(database.embedder.identifier))
     database.build_or_update_index()
-    assert os.path.exists(storage.built_index_file())
+    assert os.path.exists(storage.built_index_file(database.embedder.identifier))
 
 
 def test_find_similar_finds_actually_similar(database, storage):

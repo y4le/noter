@@ -1,24 +1,17 @@
-from flask import Flask, request, render_template, redirect, url_for
-from database import AnnoyDatabase
-from summarizer import LocalSummarizer
-from searcher import get_searcher
-from storage import Storage
 import os
+from flask import Flask, request, render_template, redirect, url_for
+from noter_gpt.database import VectorDatabaseInterface, get_database
+from noter_gpt.embedder import EmbedderInterface, get_embedder
+from noter_gpt.summarizer import SummarizerInterface, get_summarizer
+from noter_gpt.searcher import SearcherInterface, get_searcher
+from noter_gpt.storage import Storage
 
 app = Flask(__name__)
 
-# Initialize Storage
-storage = Storage()
-
-# Initialize the Documentdatabase and build the index
-database = AnnoyDatabase(storage=storage)
-database.build_or_update_index()
-
-# Initialize the LocalSummarizer
-summarizer = LocalSummarizer(storage=storage)
-
-# Initialize the Searcher
-searcher = get_searcher(storage=storage)
+storage: Storage = None
+database: VectorDatabaseInterface = None
+summarizer: SummarizerInterface = None
+searcher: SearcherInterface = None
 
 
 @app.route("/")
@@ -120,8 +113,29 @@ def format_similar(content):
     return formatted_similar_notes
 
 
-def run_server():
-    app.run(debug=True, use_reloader=False)
+def run_server(use_openai=False):
+    # Hacky nonsense to inject dependencies
+
+    # Initialize Storage
+    global storage
+    storage = Storage()
+
+    # Initialize the Documentdatabase and build the index
+    global database
+    database = get_database(
+        storage=storage, embedder=get_embedder(use_openai=use_openai)
+    )
+    database.build_or_update_index()
+
+    # Initialize the LocalSummarizer
+    global summarizer
+    summarizer = get_summarizer(storage=storage, use_openai=use_openai)
+
+    # Initialize the Searcher
+    global searcher
+    searcher = get_searcher(storage=storage)
+
+    app.run(debug=True, use_reloader=False, port=31337)
 
 
 if __name__ == "__main__":

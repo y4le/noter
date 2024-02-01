@@ -10,6 +10,15 @@ class Storage:
         self._init_cache_path(cache_path)
         os.chdir(self.root_path)
 
+    def __reduce__(self):
+        return (
+            Storage,
+            (
+                self.root_path,
+                self.cache_path,
+            ),
+        )
+
     def _init_root_path(self, root_path: str) -> None:
         self.root_path = root_path
         if not self.root_path:
@@ -33,11 +42,11 @@ class Storage:
 
         os.makedirs(self.cache_path, exist_ok=True)
 
-    def embedding_cache_file(self) -> str:
-        return os.path.join(self.cache_path, "embedding_hashes.json")
+    def embedding_cache_file(self, identifier: str) -> str:
+        return os.path.join(self.cache_path, f"embedding_hashes_{identifier}.json")
 
-    def built_index_file(self) -> str:
-        return os.path.join(self.cache_path, "index.ann")
+    def built_index_file(self, identifier: str) -> str:
+        return os.path.join(self.cache_path, f"index_{identifier}.ann")
 
     def summary_cache_file(self) -> str:
         return os.path.join(self.cache_path, "file_summaries.json")

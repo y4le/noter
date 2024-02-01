@@ -3,6 +3,7 @@ import json
 import os
 from abc import ABC, abstractmethod
 from typing import List, Tuple
+from functools import cached_property
 
 from annoy import AnnoyIndex
 
@@ -15,7 +16,6 @@ class VectorDatabaseInterface(ABC):
         self.storage = storage
         if not self.storage:
             self.storage = Storage()
-        self.embedding_cache_file = self.storage.embedding_cache_file()
         self.documents = {}  # Stores file paths, hashes, and embeddings
         self.need_rebuild = True  # Flag to check if rebuild is required
 
@@ -79,6 +79,11 @@ class VectorDatabaseInterface(ABC):
             file_contents = file.read()
         return self.find_similar(file_contents, n)
 
+    @cached_property
+    @abstractmethod
+    def embedding_cache_file(self) -> str:
+        pass
+
 
 class AnnoyDatabase(VectorDatabaseInterface):
     def __init__(
@@ -92,7 +97,7 @@ class AnnoyDatabase(VectorDatabaseInterface):
         else:
             self.embedder = embedder
         self.index = AnnoyIndex(self.embedder.dimension(), "angular")
-        self.index_file = self.storage.built_index_file()
+        self.index_file = self.storage.built_index_file(self.embedder.identifier)
         self.item_count = 0  # Counter for the number of items in the index
 
     def get_embedding(self, text: str) -> List[float]:
@@ -131,3 +136,11 @@ class AnnoyDatabase(VectorDatabaseInterface):
 
     def find_similar_to_file(self, path: str, n: int = 5) -> List[Tuple[str, float]]:
         return super().find_similar_to_file(path, n)
+
+    @cached_property
+    def embedding_cache_file(self) -> str:
+        return self.storage.embedding_cache_file(self.embedder.identifier)
+
+
+def get_database(storage: Storage, embedder: EmbedderInterface):
+    return AnnoyDatabase(storage=storage, embedder=embedder)

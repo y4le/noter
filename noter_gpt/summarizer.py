@@ -121,7 +121,7 @@ class OpenAISummarizer(SummarizerInterface):
             "Please write a summary of the "
             "following text using friendly, easy to read language:\n\n"
             '"""'
-            "{text_to_summarize}"
+            f"{text_to_summarize}"
             '"""'
         )
 
@@ -134,12 +134,12 @@ class OpenAISummarizer(SummarizerInterface):
             "Use friendly, easy to read language:\n\n"
             "CONTEXT:"
             '"""'
-            "{context}"
+            f"{context}"
             '"""'
             "\n\n"
             "SUMMARIZE:"
             '"""'
-            "{text_to_summarize}"
+            f"{text_to_summarize}"
             '"""'
         )
 
@@ -161,3 +161,9 @@ class OpenAISummarizer(SummarizerInterface):
 
     def _cache_model_key(self) -> str:
         return f"OPENAI_{self.model}"
+
+
+def get_summarizer(storage: Storage, use_openai: bool = False):
+    if use_openai:
+        return OpenAISummarizer(storage=storage)
+    return LocalSummarizer(storage=storage)
