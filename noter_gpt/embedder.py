@@ -1,11 +1,11 @@
 import os
 from abc import ABC, abstractmethod
-import numpy as np
 from functools import cached_property
 
-from transformers import AutoTokenizer, AutoModel
+import numpy as np
 import torch
 from openai import OpenAI
+from transformers import AutoModel, AutoTokenizer
 
 
 class EmbedderInterface(ABC):

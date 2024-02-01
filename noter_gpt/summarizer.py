@@ -1,4 +1,3 @@
-import asyncio
 import os
 import hashlib
 import json
@@ -28,14 +27,14 @@ class SummarizerInterface(ABC):
 
         self.cache = self._load_cache()
 
-    def _load_cache(self):
+    def _load_cache(self) -> None:
         try:
             with open(self.storage.summary_cache_file(), "r") as f:
                 return json.load(f)
         except FileNotFoundError:
             return {}
 
-    def _save_cache(self):
+    def _save_cache(self) -> None:
         with open(self.storage.summary_cache_file(), "w+") as f:
             json.dump(self.cache, f)
 
@@ -47,7 +46,7 @@ class SummarizerInterface(ABC):
     def _get_from_cache(self, key: str) -> str:
         return self.cache.get(key)
 
-    def _add_to_cache(self, key: str, value: str):
+    def _add_to_cache(self, key: str, value: str) -> None:
         if len(self.cache) >= CACHE_SIZE:
             self.cache.pop(next(iter(self.cache)))
         self.cache[key] = value
@@ -113,7 +112,7 @@ class OpenAISummarizer(SummarizerInterface):
             "You only use factual information and try not to add "
             "any new information when summarizing text. "
             "When summarizing text please try your best to keep the "
-            "total length less than {MAX_SUMMARY_LENGTH} characters."
+            f"total length less than {MAX_SUMMARY_LENGTH} words."
         )
 
     def _summarize_prompt(self, text_to_summarize: str) -> str:
@@ -163,7 +162,7 @@ class OpenAISummarizer(SummarizerInterface):
         return f"OPENAI_{self.model}"
 
 
-def get_summarizer(storage: Storage, use_openai: bool = False):
+def get_summarizer(storage: Storage, use_openai: bool = False) -> SummarizerInterface:
     if use_openai:
         return OpenAISummarizer(storage=storage)
     return LocalSummarizer(storage=storage)

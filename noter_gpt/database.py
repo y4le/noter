@@ -142,5 +142,7 @@ class AnnoyDatabase(VectorDatabaseInterface):
         return self.storage.embedding_cache_file(self.embedder.identifier)
 
 
-def get_database(storage: Storage, embedder: EmbedderInterface):
+def get_database(
+    storage: Storage, embedder: EmbedderInterface
+) -> VectorDatabaseInterface:
     return AnnoyDatabase(storage=storage, embedder=embedder)

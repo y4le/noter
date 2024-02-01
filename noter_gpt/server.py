@@ -1,27 +1,29 @@
 import os
+from typing import Tuple, List
 from flask import Flask, request, render_template, redirect, url_for
+
 from noter_gpt.database import VectorDatabaseInterface, get_database
-from noter_gpt.embedder import EmbedderInterface, get_embedder
-from noter_gpt.summarizer import SummarizerInterface, get_summarizer
+from noter_gpt.embedder import get_embedder
 from noter_gpt.searcher import SearcherInterface, get_searcher
 from noter_gpt.storage import Storage
+from noter_gpt.summarizer import SummarizerInterface, get_summarizer
 
 app = Flask(__name__)
 
-storage: Storage = None
-database: VectorDatabaseInterface = None
-summarizer: SummarizerInterface = None
-searcher: SearcherInterface = None
+storage: Storage
+database: VectorDatabaseInterface
+summarizer: SummarizerInterface
+searcher: SearcherInterface
 
 
 @app.route("/")
-def index():
+def index() -> str:
     notes = [note for note in storage.all_notes()]
     return render_template("index.html", notes=notes)
 
 
 @app.route("/note/<path:filename>", methods=["GET", "POST"])
-def note(filename):
+def note(filename: str) -> str:
     if request.method == "POST":
         if "delete" in request.form:
             original_filepath = storage.note_abs_path(filename)
@@ -69,7 +71,7 @@ def note(filename):
 
 
 @app.route("/note-content/<path:filename>")
-def note_content(filename):
+def note_content(filename: str) -> str:
     filepath = storage.note_abs_path(filename)
     if os.path.exists(filepath):
         with open(filepath, "r") as f:
@@ -79,7 +81,7 @@ def note_content(filename):
 
 
 @app.route("/note-summary/<path:filename>")
-def note_summary(filename):
+def note_summary(filename: str) -> str:
     filepath = storage.note_abs_path(filename)
     if os.path.exists(filepath):
         return summarizer.summarize_file(filepath)
@@ -87,14 +89,14 @@ def note_summary(filename):
 
 
 @app.route("/text-summary", methods=["POST"])
-def text_summary():
+def text_summary() -> str:
     data = request.get_json()
     text = data["text"]
     return summarizer.summarize_text(text)
 
 
 @app.route("/search-full-text")
-def search_full_text():
+def search_full_text() -> str:
     query = request.args.get("query", "")
     if query:
         documents = searcher.text_search(query)
@@ -103,7 +105,7 @@ def search_full_text():
         return redirect(url_for("index"))
 
 
-def format_similar(content):
+def format_similar(content: str) -> List[Tuple[str, str]]:
     # Rebuild or update the index after updating the note
     database.build_or_update_index()
     similar_notes = database.find_similar(content, n=5)
@@ -113,7 +115,7 @@ def format_similar(content):
     return formatted_similar_notes
 
 
-def run_server(use_openai=False):
+def run_server(use_openai: bool = False) -> None:
     # Hacky nonsense to inject dependencies
 
     # Initialize Storage

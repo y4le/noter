@@ -1,5 +1,6 @@
 import argparse
 from typing import List, Tuple
+
 from noter_gpt.database import AnnoyDatabase
 from noter_gpt.summarizer import get_summarizer
 from noter_gpt.batch_summarizer import BatchSummarizer
@@ -34,7 +35,6 @@ def cli():
             "search",
             "summarize",
             "summarize_all",
-            "parallel_summarize_all",
             "server",
         ],
     )

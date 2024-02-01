@@ -10,15 +10,6 @@ class Storage:
         self._init_cache_path(cache_path)
         os.chdir(self.root_path)
 
-    def __reduce__(self):
-        return (
-            Storage,
-            (
-                self.root_path,
-                self.cache_path,
-            ),
-        )
-
     def _init_root_path(self, root_path: str) -> None:
         self.root_path = root_path
         if not self.root_path:

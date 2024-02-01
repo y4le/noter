@@ -1,8 +1,7 @@
+from abc import ABC, abstractmethod
 import os
 import re
-
-from abc import ABC, abstractmethod
-from typing import List, Tuple
+from typing import List
 
 import ripgrepy
 
@@ -88,7 +87,11 @@ class RipgrepSearcher(SearcherInterface):
         return self._search(pattern, True)
 
     def _search(self, pattern: str, is_regex: bool = True) -> List[str]:
-        rg = ripgrepy.Ripgrepy(pattern, self.storage.root_path).files_with_matches().smart_case()
+        rg = (
+            ripgrepy.Ripgrepy(pattern, self.storage.root_path)
+            .files_with_matches()
+            .smart_case()
+        )
         if not is_regex:
             rg = rg.fixed_strings()
         matching_files = rg.run().as_string.split("\n")[:-1]
