@@ -24,21 +24,25 @@ class LocalSummarizer(SummarizerInterface):
         self.model = model
         self.summarizer = pipeline("summarization", model=model)
 
-    def _summarize(self, _text: str, _: str = None) -> str:
-        chunks = chunk_text(_text, MAX_LOCAL_INPUT_CHARS)
+    def _summarize(self, text: str, _: str = None) -> str:
+        chunks = chunk_text(text, MAX_LOCAL_INPUT_CHARS)
         summaries = []
         for chunk in chunks:
-            summary = self.summarizer(
-                chunk,
-                min_length=MIN_SUMMARY_LENGTH_WORDS,
-                max_length=MAX_SUMMARY_LENGTH_WORDS,
-                do_sample=False,
-            )
-            summaries.append(summary[0]["summary_text"])
+            summary = self._summarize_chunk(chunk)
+            summaries.append(summary)
         concatenated_summary = "\n\n".join(summaries)
         if len(re.split(r"\W+", concatenated_summary)) <= MAX_SUMMARY_LENGTH_WORDS:
             return concatenated_summary
         return self._summarize(concatenated_summary, _)
+
+    def _summarize_chunk(self, chunk: str) -> str:
+        result = self.summarizer(
+            chunk,
+            min_length=MIN_SUMMARY_LENGTH_WORDS,
+            max_length=MAX_SUMMARY_LENGTH_WORDS,
+            do_sample=False,
+        )
+        return result[0]["summary_text"]
 
     def _cache_model_key(self) -> str:
         return f"LOCAL_{self.model}"
