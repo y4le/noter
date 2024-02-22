@@ -11,6 +11,7 @@ def test_text_search(searcher):
     results = searcher.text_search("car")
     assert results == [
         "car.txt",
+        "people/elon.txt",
         "plane.txt",
         "websites/google.txt",
     ]
@@ -18,7 +19,7 @@ def test_text_search(searcher):
 
 def test_text_search_smart_case_sensitive(searcher):
     results = searcher.text_search("Car")
-    assert results == ["car.txt", "websites/google.txt"]
+    assert results == ["car.txt", "people/elon.txt", "websites/google.txt"]
 
 
 def test_regex_search(searcher):
@@ -28,6 +29,7 @@ def test_regex_search(searcher):
         "countries/canada.txt",
         "countries/japan.txt",
         "countries/united_states.txt",
+        "people/elon.txt",
         "websites/facebook.txt",
         "websites/wiki.txt",
         "websites/youtube.txt",
@@ -41,6 +43,7 @@ def test_regex_search_smart_case_sensitive(searcher):
         "countries/canada.txt",
         "countries/japan.txt",
         "countries/united_states.txt",
+        "people/elon.txt",
         "websites/facebook.txt",
         "websites/youtube.txt",
     ]
