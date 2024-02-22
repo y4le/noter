@@ -1,7 +1,7 @@
 import argparse
 from typing import List, Tuple
 
-from noter_gpt.database import AnnoyDatabase
+from noter_gpt.database.annoy_database import AnnoyDatabase
 from noter_gpt.summarizer.inject import inject_summarizer
 from noter_gpt.summarizer.batch_summarizer import BatchSummarizer
 from noter_gpt.storage import Storage

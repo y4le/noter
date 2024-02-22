@@ -2,7 +2,7 @@ import os
 from typing import Tuple, List
 from flask import Flask, request, render_template, redirect, url_for
 
-from noter_gpt.database import VectorDatabaseInterface, get_database
+from noter_gpt.database.inject import VectorDatabaseInterface, inject_database
 from noter_gpt.embedder.inject import inject_embedder
 from noter_gpt.searcher import SearcherInterface, get_searcher
 from noter_gpt.storage import Storage
@@ -124,7 +124,7 @@ def run_server(use_openai: bool = False) -> None:
 
     # Initialize the Documentdatabase and build the index
     global database
-    database = get_database(
+    database = inject_database(
         storage=storage, embedder=inject_embedder(use_openai=use_openai)
     )
     database.build_or_update_index()

@@ -1,6 +1,6 @@
 import os
 import pytest
-from noter_gpt.database import AnnoyDatabase
+from noter_gpt.database.annoy_database import AnnoyDatabase
 
 
 @pytest.fixture
