@@ -6,7 +6,7 @@ from noter_gpt.database import VectorDatabaseInterface, get_database
 from noter_gpt.embedder import get_embedder
 from noter_gpt.searcher import SearcherInterface, get_searcher
 from noter_gpt.storage import Storage
-from noter_gpt.summarizer import SummarizerInterface, get_summarizer
+from noter_gpt.summarizer.inject import SummarizerInterface, inject_summarizer
 
 app = Flask(__name__)
 
@@ -131,7 +131,7 @@ def run_server(use_openai: bool = False) -> None:
 
     # Initialize the LocalSummarizer
     global summarizer
-    summarizer = get_summarizer(storage=storage, use_openai=use_openai)
+    summarizer = inject_summarizer(storage=storage, use_openai=use_openai)
 
     # Initialize the Searcher
     global searcher

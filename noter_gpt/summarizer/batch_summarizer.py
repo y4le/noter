@@ -3,7 +3,7 @@ from multiprocessing.pool import ThreadPool
 from tqdm import tqdm
 
 from noter_gpt.storage import Storage
-from noter_gpt.summarizer import SummarizerInterface
+from noter_gpt.summarizer.interface import SummarizerInterface
 
 
 class BatchSummarizer:

@@ -1,5 +1,6 @@
 import pytest
-from noter_gpt.summarizer import LocalSummarizer, OpenAISummarizer
+from noter_gpt.summarizer.local_summarizer import LocalSummarizer
+from noter_gpt.summarizer.openai_summarizer import OpenAISummarizer
 
 
 def test_local_summarizer(shared_datadir):

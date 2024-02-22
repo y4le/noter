@@ -2,8 +2,8 @@ import argparse
 from typing import List, Tuple
 
 from noter_gpt.database import AnnoyDatabase
-from noter_gpt.summarizer import get_summarizer
-from noter_gpt.batch_summarizer import BatchSummarizer
+from noter_gpt.summarizer.inject import inject_summarizer
+from noter_gpt.summarizer.batch_summarizer import BatchSummarizer
 from noter_gpt.storage import Storage
 from noter_gpt.server import run_server
 
@@ -17,12 +17,12 @@ def search_documents(
 
 
 def summarize_document(file_path: str, storage: Storage, use_openai: bool) -> str:
-    summarizer = get_summarizer(storage=storage, use_openai=use_openai)
+    summarizer = inject_summarizer(storage=storage, use_openai=use_openai)
     return summarizer.summarize_file(file_path)
 
 
 def summarize_all(storage: Storage, use_openai: bool) -> None:
-    summarizer = get_summarizer(storage=storage, use_openai=use_openai)
+    summarizer = inject_summarizer(storage=storage, use_openai=use_openai)
     batch_summarizer = BatchSummarizer(summarizer, storage=storage)
     return batch_summarizer.parallel_summarize_all_notes()
 
