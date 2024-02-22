@@ -1,5 +1,6 @@
 import pytest
-from noter_gpt.searcher import NativeSearcher, RipgrepSearcher
+from noter_gpt.searcher.native_searcher import NativeSearcher
+from noter_gpt.searcher.ripgrep_searcher import RipgrepSearcher
 
 
 @pytest.fixture(params=[NativeSearcher, RipgrepSearcher])

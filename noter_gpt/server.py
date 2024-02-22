@@ -4,7 +4,7 @@ from flask import Flask, request, render_template, redirect, url_for
 
 from noter_gpt.database.inject import VectorDatabaseInterface, inject_database
 from noter_gpt.embedder.inject import inject_embedder
-from noter_gpt.searcher import SearcherInterface, get_searcher
+from noter_gpt.searcher.inject import SearcherInterface, inject_searcher
 from noter_gpt.storage import Storage
 from noter_gpt.summarizer.inject import SummarizerInterface, inject_summarizer
 
@@ -135,7 +135,7 @@ def run_server(use_openai: bool = False) -> None:
 
     # Initialize the Searcher
     global searcher
-    searcher = get_searcher(storage=storage)
+    searcher = inject_searcher(storage=storage)
 
     app.run(debug=True, use_reloader=False, port=31337)
 
