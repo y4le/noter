@@ -1,6 +1,8 @@
 import pytest
-from noter_gpt.embedder import TransformersEmbedder, OpenAIEmbedder
 import numpy as np
+
+from noter_gpt.embedder.transformers_embedder import TransformersEmbedder
+from noter_gpt.embedder.openai_embedder import OpenAIEmbedder
 
 
 def test_transformers_embedder(shared_datadir):

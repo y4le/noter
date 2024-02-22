@@ -8,7 +8,8 @@ from functools import cached_property
 from annoy import AnnoyIndex
 
 from noter_gpt.storage import Storage
-from noter_gpt.embedder import EmbedderInterface, TransformersEmbedder
+from noter_gpt.embedder.interface import EmbedderInterface
+from noter_gpt.embedder.transformers_embedder import TransformersEmbedder
 
 
 class VectorDatabaseInterface(ABC):
