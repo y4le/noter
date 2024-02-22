@@ -1,4 +1,5 @@
 import os
+import re
 import hashlib
 import json
 from abc import ABC, abstractmethod
@@ -8,7 +9,8 @@ from transformers import pipeline
 
 from noter_gpt.storage import Storage
 
-MAX_SUMMARY_LENGTH = 150
+MAX_SUMMARY_LENGTH = 250
+MIN_SUMMARY_LENGTH = MAX_SUMMARY_LENGTH // 2
 MAX_LOCAL_INPUT_CHARS = 4000
 
 CACHE_SIZE = 1000
@@ -85,15 +87,21 @@ class LocalSummarizer(SummarizerInterface):
         self.summarizer = pipeline("summarization", model=model)
 
     def _summarize(self, _text: str, _: str = None) -> str:
-        # TODO: recursively summarize large files rather than truncating
-        text = _text
-        if len(text) > MAX_LOCAL_INPUT_CHARS:
-            text = text[:MAX_SUMMARY_LENGTH]
-
-        summary = self.summarizer(
-            text, max_length=MAX_SUMMARY_LENGTH, min_length=100, do_sample=False
-        )
-        return summary[0]["summary_text"]
+        chunks = chunk_text(_text, MAX_LOCAL_INPUT_CHARS)
+        summaries = []
+        for chunk in chunks:
+            print(f"{chunk=}")
+            summary = self.summarizer(
+                chunk,
+                min_length=MIN_SUMMARY_LENGTH,
+                max_length=MAX_SUMMARY_LENGTH,
+                do_sample=False,
+            )
+            summaries.append(summary[0]["summary_text"])
+        concatenated_summary = "\n\n".join(summaries)
+        if len(re.split(r"\W+", concatenated_summary)) <= MAX_SUMMARY_LENGTH:
+            return concatenated_summary
+        return self._summarize(concatenated_summary, _)
 
     def _cache_model_key(self) -> str:
         return f"LOCAL_{self.model}"
@@ -160,6 +168,30 @@ class OpenAISummarizer(SummarizerInterface):
 
     def _cache_model_key(self) -> str:
         return f"OPENAI_{self.model}"
+
+
+def chunk_text(text, chunk_size):
+    chunks = []
+    while text:
+        if len(text) <= chunk_size:
+            chunks.append(text)
+            break
+        else:
+            # Try to split at the last paragraph within the last third of the chunk size
+            search_start = int(chunk_size * 2 / 3)
+            last_paragraph_end = text.rfind("\n\n", search_start, chunk_size)
+            if last_paragraph_end != -1:
+                chunks.append(text[:last_paragraph_end])
+                text = text[last_paragraph_end + 2 :]  # Skip the paragraph break
+            else:
+                last_word_break = text.rfind(" ", search_start, chunk_size)
+                if last_word_break != -1:
+                    chunks.append(text[:last_word_break])
+                    text = text[last_word_break + 1 :]  # Skip the space
+                else:
+                    chunks.append(text[:chunk_size])
+                    text = text[chunk_size:]
+    return chunks
 
 
 def get_summarizer(storage: Storage, use_openai: bool = False) -> SummarizerInterface:
