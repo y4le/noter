@@ -1,5 +1,5 @@
 import argparse
-from typing import List, Tuple
+from typing import List, Tuple, Iterator
 
 from noter_gpt.database.annoy_database import AnnoyDatabase
 from noter_gpt.summarizer.inject import inject_summarizer
@@ -16,9 +16,20 @@ def search_documents(
     return database.find_similar_to_file(query_file, n)
 
 
-def summarize_document(file_path: str, storage: Storage, use_openai: bool) -> str:
-    summarizer = inject_summarizer(storage=storage, use_openai=use_openai)
+def summarize_document(
+    file_path: str, storage: Storage, use_openai: bool, model=None
+) -> str:
+    summarizer = inject_summarizer(
+        storage=storage, use_openai=use_openai, model_name=model
+    )
     return summarizer.summarize_file(file_path)
+
+
+def stream_summarize_document(
+    file_path: str, storage: Storage, use_openai: bool
+) -> Iterator[str]:
+    summarizer = inject_summarizer(storage=storage, use_openai=use_openai)
+    return summarizer.stream_summarize_file(file_path)
 
 
 def summarize_all(storage: Storage, use_openai: bool) -> None:
@@ -34,6 +45,9 @@ def cli():
         choices=[
             "search",
             "summarize",
+            "stream_summarize",
+            "gemma_summarize",
+            "mixtral_summarize",
             "summarize_all",
             "server",
         ],
@@ -66,6 +80,21 @@ def cli():
             args.directory_or_file, storage, use_openai=args.use_openai
         )
         print(summary)
+    elif args.command == "mixtral_summarize":
+        summary = summarize_document(
+            args.directory_or_file, storage, use_openai=args.use_openai, model="mixtral"
+        )
+        print(summary)
+    elif args.command == "gemma_summarize":
+        summary = summarize_document(
+            args.directory_or_file, storage, use_openai=args.use_openai, model="gemma"
+        )
+        print(summary)
+    elif args.command == "stream_summarize":
+        for output in stream_summarize_document(
+            args.directory_or_file, storage, use_openai=args.use_openai
+        ):
+            print(output, end="")
     elif args.command == "summarize_all":
         summarize_all(storage, use_openai=args.use_openai)
     elif args.command == "server":

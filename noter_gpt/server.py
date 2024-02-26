@@ -129,7 +129,7 @@ def run_server(use_openai: bool = False) -> None:
     )
     database.build_or_update_index()
 
-    # Initialize the LocalSummarizer
+    # Initialize the Summarizer
     global summarizer
     summarizer = inject_summarizer(storage=storage, use_openai=use_openai)
 

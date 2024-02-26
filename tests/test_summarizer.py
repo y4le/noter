@@ -1,10 +1,10 @@
 import pytest
-from noter_gpt.summarizer.local_summarizer import LocalSummarizer
+from noter_gpt.summarizer.bart_summarizer import BartSummarizer
 from noter_gpt.summarizer.openai_summarizer import OpenAISummarizer
 
 
 def test_local_summarizer(shared_datadir):
-    summarizer = LocalSummarizer()
+    summarizer = BartSummarizer()
     file_path = shared_datadir / "notes" / "animals" / "cat.txt"
     with open(file_path, "r") as f:
         original_text = f.read()
@@ -25,7 +25,7 @@ def test_openai_summarizer(shared_datadir):
 
 
 def test_local_summarizer_cache(shared_datadir):
-    summarizer = LocalSummarizer()
+    summarizer = BartSummarizer()
     file_path = shared_datadir / "notes" / "animals" / "cat.txt"
     summary1 = summarizer.summarize_file(file_path)
     summary2 = summarizer.summarize_file(file_path)

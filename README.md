@@ -44,7 +44,8 @@ quicker summarization and embedding.
   - [X] invalidate existing summaries when we use different summarizer
   - [X] use summarizer in web app
   - [X] auto summarize documents in background (added explicit summarize_all cli command)
-  - [ ] recursively summarize large files with LocalSummarizer
+  - [X] recursively summarize large files with LocalSummarizer
+  - [ ] test more local summarizers, look into larger contexts
 - full text search
   - [X] add text search to webapp
   - [X] look into ripgrepy for local full text file search
